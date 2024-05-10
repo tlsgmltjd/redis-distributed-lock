@@ -1,36 +1,30 @@
 package com.example.redisdistributedrock.service;
 
+import com.example.redisdistributedrock.domain.Ticket;
+import com.example.redisdistributedrock.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class TicketService {
+    private final TicketRepository ticketRepository;
 
-    private final RedissonClient redissonClient;
-    private final int EMPTY = 0;
+    @Transactional
+    public void buy(Long id) {
 
-    public void useTicketNoLock(final String key) {
-        final int quantity = getTicketQuantity(key);
+        Ticket ticket = ticketRepository.findById(id).orElse(null);
 
-        if (quantity <= EMPTY) {
-            log.info("티켓 모두 소진");
-            return;
+        if (ticket != null && ticket.getQuantity() <= 0) {
+            log.warn("매진");
         }
 
-        log.info("남은 티켓 : {}", quantity);
+        ticket.setQuantity(ticket.getQuantity() - 1);
+        log.info("구매 : " + ticket.getQuantity());
+        ticketRepository.save(ticket);
 
-        buy(key, quantity - 1);
-    }
-
-    public void buy(String key, int quantity) {
-        redissonClient.getBucket(key).set(quantity);
-    }
-
-    public int getTicketQuantity(String key) {
-        return (int) redissonClient.getBucket(key).get();
     }
 }
