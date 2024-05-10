@@ -26,6 +26,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     implementation 'org.redisson:redisson-spring-boot-starter:3.16.3'
+    implementation("org.springframework.session:spring-session-data-redis")
+    implementation 'io.lettuce:lettuce-core:6.2.3.RELEASE'
 }
 
 tasks.named('test') {

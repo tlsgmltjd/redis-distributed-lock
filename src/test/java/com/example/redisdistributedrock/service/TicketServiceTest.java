@@ -53,13 +53,32 @@ class TicketServiceTest {
     }
 
     @Test
-    void 동시성_문제_해결_CASE() {
+    void 동시성_문제_해결_REDISSON_CASE() {
 
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
 
                 try {
                     ticketService.buy_redisson_lock(USER_ID);
+                } finally {
+                    latch.countDown();
+                }
+
+            });
+        }
+
+        Assertions.assertThat(ticketRepository.count()).isEqualTo(1);
+
+    }
+
+    @Test
+    void 동시성_문제_해결_REDIS_CASE() {
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+
+                try {
+                    ticketService.buy_redis_lock(USER_ID);
                 } finally {
                     latch.countDown();
                 }
