@@ -22,8 +22,7 @@ class TicketServiceTest {
     @Autowired
     TicketRepository ticketRepository;
 
-
-    int threadCount = 2;
+    int threadCount = 10;
     long USER_ID = 1L;
 
     ExecutorService executorService = Executors.newFixedThreadPool(32);
@@ -54,9 +53,29 @@ class TicketServiceTest {
     }
 
     @Test
-    void 동시성_문제_안발생_CASE() {
+    void 동시성_문제_해결_CASE() {
 
         for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+
+                try {
+                    ticketService.buy_redisson_lock(USER_ID);
+                } finally {
+                    latch.countDown();
+                }
+
+            });
+        }
+
+        Assertions.assertThat(ticketRepository.count()).isEqualTo(1);
+
+    }
+
+    @Test
+    void 동시성_문제_안발생_CASE() throws InterruptedException {
+
+        for (int i = 0; i < threadCount; i++) {
+            Thread.sleep(500);
            ticketService.buy(USER_ID);
         }
 
