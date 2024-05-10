@@ -23,7 +23,8 @@ class TicketServiceTest {
     TicketRepository ticketRepository;
 
 
-    int threadCount = 10;
+    int threadCount = 2;
+    long USER_ID = 1L;
 
     ExecutorService executorService = Executors.newFixedThreadPool(32);
     CountDownLatch latch = new CountDownLatch(threadCount);
@@ -31,7 +32,6 @@ class TicketServiceTest {
     @BeforeEach
     void init() {
         ticketRepository.deleteAll();
-        ticketRepository.save(new Ticket(1L, "hi", 30));
     }
 
     @Test
@@ -41,7 +41,7 @@ class TicketServiceTest {
             executorService.submit(() -> {
 
                 try {
-                    ticketService.buy(1L);
+                    ticketService.buy(USER_ID);
                 } finally {
                     latch.countDown();
                 }
@@ -49,17 +49,18 @@ class TicketServiceTest {
             });
         }
 
-        Assertions.assertThat(ticketRepository.findById(1L).get().getQuantity()).isEqualTo(20);
+        Assertions.assertThat(ticketRepository.count()).isEqualTo(1);
 
     }
+
     @Test
     void 동시성_문제_안발생_CASE() {
 
         for (int i = 0; i < threadCount; i++) {
-           ticketService.buy(1L);
+           ticketService.buy(USER_ID);
         }
 
-        Assertions.assertThat(ticketRepository.findById(1L).get().getQuantity()).isEqualTo(20);
+        Assertions.assertThat(ticketRepository.count()).isEqualTo(1);
 
     }
 

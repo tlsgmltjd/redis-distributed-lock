@@ -15,16 +15,16 @@ public class TicketService {
 
     @Transactional
     public void buy(Long id) {
+        log.info("====================== START: {} ======================", Thread.currentThread().getName());
 
-        Ticket ticket = ticketRepository.findById(id).orElse(null);
-
-        if (ticket != null && ticket.getQuantity() <= 0) {
-            log.warn("매진");
+        if (ticketRepository.existsByUserId(id)) {
+            log.error("이미 티켓을 구매하였습니다.");
+            return;
         }
 
-        ticket.setQuantity(ticket.getQuantity() - 1);
-        log.info("구매 : " + ticket.getQuantity());
+        Ticket ticket = new Ticket(null, id);
         ticketRepository.save(ticket);
 
+        log.info("====================== END: {} ======================", Thread.currentThread().getName());
     }
 }
